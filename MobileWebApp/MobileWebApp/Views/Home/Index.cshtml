@@ -1,31 +1,90 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "DX Germany";
 }
 
 <div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+    <h1>Windows 10 Hosted Web App</h1>
+    <p class="lead">This is a Windows Universal Platform Hosted Web App Solution.</p>
+    <p><a href="http://www.tail-f.net" class="btn btn-primary btn-lg">Blog von Patric</a>
+    <a href="https://github.com/patbosc/westminster_demo" class="btn btn-primary btn-lg">Source auf Github</a>
+    <a href="https://vimeo.com/129111608" class="btn btn-primary btn-lg">Video von Dariusz</a></p>
 </div>
 
 <div class="row">
     <div class="col-md-4">
-        <h2>Getting started</h2>
+        <h2>Change Lockscreen</h2>
         <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
+            Dieses Szenario zeigt, wie man mit "Hosted Web Apps" den Hintergrund der Windows 10 Maschine ändern kann. 
         </p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+        <p><a class="btn btn-default" id="action" >Open File</a></p>
     </div>
     <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+        <h2>Camera Capture</h2>
+        <p>
+            Dieses Szenario zeigt, wie man mit "Hosted Web Apps" ein Bild auf dem Windows 10 Gerät machen kann.
+        </p>
+        <p><a class="btn btn-default" id="cameracap">Take a Picture</a></p>
     </div>
     <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+        <h2>Windows Rumtime via Hosted Web Apps</h2>
+        <p>
+            Hier findet man einen Überblick über die möglichen Windows Runtime calls aus Hosted Web Apps.
+        </p>
+        <p><a class="btn btn-primary btn-lg" href="http://rjs.azurewebsites.net/">Runtime API Doc</a></p>
     </div>
+</div>
+<div class="col-md-8">
+    <h2>Dein ausgewähltes oder gemachtes Bild</h2>
+    <p>The image you selected will be displayed here and will also be placed on your lock screen!</p>
+    <p><img id="picture" src="#" style="visibility: hidden" height="360" /></p>
+</div>
+<div>
+<script>
+     document.addEventListener("DOMContentLoaded", function () {
+        $("#action").click(function () {
+            if (window.Windows) {
+                console.log("we're on windows 10");
+                var picker = new Windows.Storage.Pickers.FileOpenPicker();
+                picker.viewMode = Windows.Storage.Pickers.PickerViewMode.thumbnail;
+                picker.suggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.picturesLibrary;
+                picker.fileTypeFilter.replaceAll([".jpg", ".jpeg", ".png", ".bmp"]);
+
+                picker.pickSingleFileAsync().done(function (file) {
+                    if (file) {
+                        // Application now has read/write access to the picked file, setting image to lockscreen.
+                        Windows.System.UserProfile.LockScreen.setImageFileAsync(file).done(function (imageSet) {
+                            console.log && console.log("File \"" + file.name + "\" set as lock screen image.", "sample", "status");
+                            $("#picture").get(0).src = URL.createObjectURL(file, { oneTimeOnly: true });
+                            $("#picture").css("visibility", "visible");
+                        },
+                        function (imageSet) {
+                            // Set Image promise failed.  Display failure message.
+                            console.log && console.log("Setting the lock screen image failed.  Make sure your copy of Windows is activated.", "sample", "error");
+                        });
+                    }
+                    else {
+                        console.log && console.log("No file was selected using the picker.", "sample", "error");
+                    }
+                });
+            } else {
+                alert("This is the web, what do you expect?");
+            }
+        });
+        $("#cameracap").click(function () {
+            if (typeof Windows != 'undefined') {
+                var captureUI = new Windows.Media.Capture.CameraCaptureUI();
+                //Set the format of the picture that's going to be captured (.png, .jpg, ...)
+                captureUI.photoSettings.format = Windows.Media.Capture.CameraCaptureUIPhotoFormat.png;
+                //Pop up the camera UI to take a picture
+                captureUI.captureFileAsync(Windows.Media.Capture.CameraCaptureUIMode.photo).then(function (capturedItem) {
+                    // Do something with the picture
+                    $("#picture").get(0).src = URL.createObjectURL(capturedItem, { oneTimeOnly: true });
+                    $("#picture").css("visibility", "visible");
+                });
+            } else {
+                alert("This is the web, what do you expect?");
+            }
+        });
+    });
+</script>
 </div>
